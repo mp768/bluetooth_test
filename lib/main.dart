@@ -1,144 +1,92 @@
-import 'dart:io';
+// Copyright 2017-2023, Charles Weinberger & Paul DeMarco.
+// All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-import 'package:device_info_plus/device_info_plus.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_bluetooth_sharing/flutter_bluetooth_sharing.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+
+import 'screens/bluetooth_off_screen.dart';
+import 'screens/scan_screen.dart';
 
 void main() {
-  runApp(MyApp());
+  FlutterBluePlus.setLogLevel(LogLevel.verbose, color: true);
+  runApp(const FlutterBlueApp());
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+//
+// This widget shows BluetoothOffScreen or
+// ScanScreen depending on the adapter state
+//
+class FlutterBlueApp extends StatefulWidget {
+  const FlutterBlueApp({Key? key}) : super(key: key);
 
   @override
-  _MyAppState createState() => _MyAppState();
+  State<FlutterBlueApp> createState() => _FlutterBlueAppState();
 }
 
-class _MyAppState extends State<MyApp> {
-  List<BluetoothDevice> discoveredDevices = [];
+class _FlutterBlueAppState extends State<FlutterBlueApp> {
+  BluetoothAdapterState _adapterState = BluetoothAdapterState.unknown;
+
+  late StreamSubscription<BluetoothAdapterState> _adapterStateStateSubscription;
 
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(Duration(milliseconds: 1000), () async {
-        await isBTPermissionGiven();
-      });
-    });
     super.initState();
-  }
-
-  Future<bool> isBTPermissionGiven() async {
-    if (Platform.isIOS) {
-      if (!await Permission.bluetooth.isRestricted) {
-        return true;
-      } else {
-        var response = await [Permission.bluetooth].request();
-        return response[Permission.bluetooth]?.isGranted == true;
+    _adapterStateStateSubscription = FlutterBluePlus.adapterState.listen((state) {
+      _adapterState = state;
+      if (mounted) {
+        setState(() {});
       }
-    } else if (Platform.isAndroid) {
-      var isAndroidS = (int.tryParse(
-          (await DeviceInfoPlugin().androidInfo).version.release) ??
-          0) >=
-          11;
-      if (isAndroidS) {
-        if (await Permission.bluetoothScan.isGranted) {
-          return true;
-        } else {
-          var response = await [
-            Permission.bluetoothScan,
-            Permission.bluetoothConnect
-          ].request();
-          return response[Permission.bluetoothScan]?.isGranted == true &&
-              response[Permission.bluetoothConnect]?.isGranted == true;
-        }
-      } else {
-        return true;
-      }
-    }
-    return false;
+    });
   }
 
-  void _startDiscovery() async {
-    try {
-      await FlutterBluetoothSharing.startDiscovery();
-      print('Discovery started.');
-      _discoverDevices();
-    } catch (e) {
-      print('Error starting discovery: $e');
-    }
-  }
-
-  void _connectToDevice(BluetoothDevice device) async {
-    try {
-      print('device: ${device.toMap()}');
-      await FlutterBluetoothSharing.connectToDevice(device);
-      print('Connected to device: ${device.name}');
-    } catch (e) {
-      print('Error connecting to device: $e');
-    }
-  }
-
-  void _sendData() async {
-    try {
-      String data = 'Hello, this is data from Device A!';
-      await FlutterBluetoothSharing.sendData(data);
-      print('Data sent successfully: $data');
-    } catch (e) {
-      print('Error sending data: $e');
-    }
-  }
-
-  void _discoverDevices() async {
-    try {
-      List<BluetoothDevice> devices = await FlutterBluetoothSharing.getDiscoverableDevices();
-      setState(() {
-        discoveredDevices = devices;
-      });
-    } catch (e) {
-      print('Error discovering devices: $e');
-    }
+  @override
+  void dispose() {
+    _adapterStateStateSubscription.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget screen = _adapterState == BluetoothAdapterState.on
+        ? const ScanScreen()
+        : BluetoothOffScreen(adapterState: _adapterState);
+
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Bluetooth Sharing Example'),
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              ElevatedButton(
-                onPressed: _startDiscovery,
-                child: Text('Start Discovery'),
-              ),
-              ElevatedButton(
-                onPressed: _sendData,
-                child: Text('Send Data'),
-              ),
-              SizedBox(height: 20),
-              Text('Discovered Devices:'),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: discoveredDevices.length,
-                  itemBuilder: (context, index) {
-                    final device = discoveredDevices[index];
-                    return ListTile(
-                      title: Text(device.name),
-                      subtitle: Text(device.address),
-                      onTap: () => _connectToDevice(device),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      color: Colors.lightBlue,
+      home: screen,
+      navigatorObservers: [BluetoothAdapterStateObserver()],
     );
+  }
+}
+
+//
+// This observer listens for Bluetooth Off and dismisses the DeviceScreen
+//
+class BluetoothAdapterStateObserver extends NavigatorObserver {
+  StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
+
+  @override
+  void didPush(Route route, Route? previousRoute) {
+    super.didPush(route, previousRoute);
+    if (route.settings.name == '/DeviceScreen') {
+      // Start listening to Bluetooth state changes when a new route is pushed
+      _adapterStateSubscription ??= FlutterBluePlus.adapterState.listen((state) {
+        if (state != BluetoothAdapterState.on) {
+          // Pop the current route if Bluetooth is off
+          navigator?.pop();
+        }
+      });
+    }
+  }
+
+  @override
+  void didPop(Route route, Route? previousRoute) {
+    super.didPop(route, previousRoute);
+    // Cancel the subscription when the route is popped
+    _adapterStateSubscription?.cancel();
+    _adapterStateSubscription = null;
   }
 }
