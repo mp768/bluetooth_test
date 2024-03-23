@@ -150,25 +150,30 @@ class _ScanScreenState extends State<ScanScreen> {
           child: ListView(
             children: <Widget>[
               ElevatedButton(onPressed: () async { 
-				if (connected) {
-				  await PeripheralServer().stopPeripheral();
-				}
+                if (connected) {
+                  await PeripheralServer().stopPeripheral();
+                }
 
-				await PeripheralServer().startPeripheral(); 
-				connected = true;
-			  }, child: Text("Start peripheralling")),
-			  ElevatedButton(onPressed: () async { 
-				if (connected) {
-				  await PeripheralServer().stopPeripheral();
-				}
-				connected = false;
-			  }, child: Text("Stop peripheralling")),
-			  ElevatedButton(onPressed: () async { 
-				setState(() {
-				  
-				});
-			  }, child: Text("Reset Text")),
-			  Text("MEssage: $peripheralMessage"),
+                await PeripheralServer().startPeripheral(); 
+                connected = true;
+              }, child: Text("Start peripheralling")),
+              ElevatedButton(onPressed: () async { 
+                if (connected) {
+                  await PeripheralServer().stopPeripheral();
+                }
+                connected = false;
+              }, child: Text("Stop peripheralling")),
+              ElevatedButton(onPressed: () async { 
+                setState(() {
+                  
+                });
+              }, child: Text("Reset Text")),
+              Text("MEssage: $peripheralMessage"),
+              ElevatedButton(onPressed: () async {
+                for (final device in FlutterBluePlus.connectedDevices) {
+                  await device.disconnect();
+                }
+              }, child: Text("Disconnect devices"))
               ..._buildSystemDeviceTiles(context),
               ..._buildScanResultTiles(context),
             ],

@@ -69,6 +69,7 @@ class PeripheralServer {
   Future<void> stopPeripheral() async {
     // await peripheral.stopAdvertising();
     await BlePeripheral.stopAdvertising();
+    
     // Optionally, remove services and clean up resources as needed
   }
 }
