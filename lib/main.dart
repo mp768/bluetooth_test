@@ -4,14 +4,20 @@
 
 import 'dart:async';
 
+import 'package:ble_peripheral/ble_peripheral.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import 'screens/bluetooth_off_screen.dart';
 import 'screens/scan_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   FlutterBluePlus.setLogLevel(LogLevel.verbose, color: true);
+
+  await BlePeripheral.initialize();
+
   runApp(const FlutterBlueApp());
 }
 
@@ -53,6 +59,8 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
     Widget screen = _adapterState == BluetoothAdapterState.on
         ? const ScanScreen()
         : BluetoothOffScreen(adapterState: _adapterState);
+
+    screen = const ScanScreen();
 
     return MaterialApp(
       color: Colors.lightBlue,

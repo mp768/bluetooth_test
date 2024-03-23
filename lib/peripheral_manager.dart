@@ -1,40 +1,70 @@
-import 'dart:typed_data';
-
-import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
+import 'package:ble_peripheral/ble_peripheral.dart';
 
 class PeripheralServer {
-  final peripheral = PeripheralManager.instance;
+  // final peripheral = PeripheralManager.instance;
 
   Future<void> startPeripheral() async {
-    const serviceUuid = "12345678-1234-5678-1234-567812345678"; // Generate a unique UUID for your service
-    const characteristicUuid = "87654321-4321-6789-4321-678943216789"; // Generate a unique UUID for your characteristic
+    const serviceUuid = "0000180F-0000-1000-8000-00805F9B34FB"; // Generate a unique UUID for your service
+    const characteristicUuid = "00002A19-0000-1000-8000-00805F9B34FB"; // Generate a unique UUID for your characteristic
 
     // Define a characteristic that allows writes
-    final characteristic = GattCharacteristic(
-      uuid: UUID.fromString(characteristicUuid),
-      properties: [ GattCharacteristicProperty.read, GattCharacteristicProperty.write, GattCharacteristicProperty.notify ],
-      descriptors: [],
-      value: Uint8List(0),
+    // final characteristic = GattCharacteristic(
+    //   uuid: UUID.fromString(characteristicUuid),
+    //   properties: [ GattCharacteristicProperty.read, GattCharacteristicProperty.write, GattCharacteristicProperty.notify ],
+    //   descriptors: [],
+    //   value: Uint8List(0),
+    // );
+
+    // final advertisement = Advertisement(
+    //   name: "This is a bluetooth server",
+    //   serviceUUIDs: [ UUID.fromString(serviceUuid) ]
+    // );
+
+    final characteristic = BleCharacteristic(
+      uuid: characteristicUuid, 
+      properties: [
+        (CharacteristicProperties.read.index),
+        (CharacteristicProperties.write.index),
+      ], 
+      permissions: [
+        AttributePermissions.readable.index,
+      ]
     );
 
-    final advertisement = Advertisement(
-      name: "This is a bluetooth server",
-      serviceUUIDs: [ UUID.fromString(serviceUuid) ]
+    await BlePeripheral.addService(
+      BleService(
+        uuid: serviceUuid, 
+        primary: true, 
+        characteristics: [ characteristic ]
+      ),
+      timeout: const Duration(seconds: 15),
     );
 
-    await peripheral.addService(GattService(uuid: UUID.fromString(serviceUuid), characteristics: [characteristic]));
+    await BlePeripheral.startAdvertising(
+      services: [ serviceUuid ], 
+      localName: "This is a bluetooth server"
+    );
 
-    await peripheral.startAdvertising(advertisement);
+    // await peripheral.addService(GattService(uuid: UUID.fromString(serviceUuid), characteristics: [characteristic]));
 
-    peripheral.characteristicWritten.listen((event) { 
-      print("Recieved Data: ${event.value.toString()}");
+    // await peripheral.startAdvertising(advertisement);
+
+    BlePeripheral.setWriteRequestCallback((deviceId, characteristicId, offset, value) {
+        if (characteristicId == characteristicUuid) {
+          print("Received Data from $deviceId: ${value.toString()}");
+        }
     });
+
+    // peripheral.characteristicWritten.listen((event) { 
+    //   print("Recieved Data: ${event.value.toString()}");
+    // });
 
     print('Peripheral is advertising...');
   }
 
   Future<void> stopPeripheral() async {
-    await peripheral.stopAdvertising();
+    // await peripheral.stopAdvertising();
+    await BlePeripheral.stopAdvertising();
     // Optionally, remove services and clean up resources as needed
   }
 }

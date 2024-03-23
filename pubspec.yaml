@@ -39,7 +39,7 @@ dependencies:
   device_info_plus: ^10.0.1
   permission_handler: ^11.3.0
   flutter_blue_plus: ^1.31.17
-  bluetooth_low_energy: ^5.0.6
+  ble_peripheral: ^2.0.0
 
 dev_dependencies:
   flutter_test:

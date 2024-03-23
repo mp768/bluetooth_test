@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:bluetooth_test/peripheral_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -148,7 +147,7 @@ class _ScanScreenState extends State<ScanScreen> {
           onRefresh: onRefresh,
           child: ListView(
             children: <Widget>[
-              ElevatedButton(onPressed: () { PeripheralServer().startPeripheral(); }, child: Text("Start peripheralling")),
+              ElevatedButton(onPressed: () async { await PeripheralServer().startPeripheral(); }, child: Text("Start peripheralling")),
               ..._buildSystemDeviceTiles(context),
               ..._buildScanResultTiles(context),
             ],
