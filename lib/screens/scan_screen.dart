@@ -29,7 +29,17 @@ class _ScanScreenState extends State<ScanScreen> {
     super.initState();
 
     _scanResultsSubscription = FlutterBluePlus.scanResults.listen((results) {
-      _scanResults = results;
+      _scanResults = [];
+
+      for (final result in results) {
+        for (final uuid in result.advertisementData.serviceUuids) {
+          if (uuid.str128 == serviceUuid.toLowerCase()) {
+            _scanResults.add(result);
+            break;
+          }
+        }
+      }
+
       if (mounted) {
         setState(() {});
       }
@@ -165,15 +175,18 @@ class _ScanScreenState extends State<ScanScreen> {
               }, child: Text("Stop peripheralling")),
               ElevatedButton(onPressed: () async { 
                 setState(() {
-                  
+                  peripheralMessage = "";
                 });
               }, child: Text("Reset Text")),
+              ElevatedButton(onPressed: () async { 
+                setState(() {});
+              }, child: Text("Update Text")),
               Text("MEssage: $peripheralMessage"),
               ElevatedButton(onPressed: () async {
                 for (final device in FlutterBluePlus.connectedDevices) {
                   await device.disconnect();
                 }
-              }, child: Text("Disconnect devices"))
+              }, child: Text("Disconnect devices")),
               ..._buildSystemDeviceTiles(context),
               ..._buildScanResultTiles(context),
             ],

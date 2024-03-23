@@ -1,14 +1,13 @@
 import 'package:ble_peripheral/ble_peripheral.dart';
 
 String peripheralMessage = "";
+const serviceUuid = "0000180F-0000-1000-8000-00805F9B34FB"; // Generate a unique UUID for your service
+const characteristicUuid = "00002A19-0000-1000-8000-00805F9B34FB"; // Generate a unique UUID for your characteristic
 
 class PeripheralServer {
   // final peripheral = PeripheralManager.instance;
 
   Future<void> startPeripheral() async {
-    const serviceUuid = "0000180F-0000-1000-8000-00805F9B34FB"; // Generate a unique UUID for your service
-    const characteristicUuid = "00002A19-0000-1000-8000-00805F9B34FB"; // Generate a unique UUID for your characteristic
-
     // Define a characteristic that allows writes
     // final characteristic = GattCharacteristic(
     //   uuid: UUID.fromString(characteristicUuid),
@@ -55,8 +54,10 @@ class PeripheralServer {
     BlePeripheral.setWriteRequestCallback((deviceId, characteristicId, offset, value) {
         // if (characteristicId == characteristicUuid) {
           print("Received Data from $deviceId: ${value.toString()}");
-		  peripheralMessage = value.toString();
+		      peripheralMessage = value.toString();
         // }
+
+        return WriteRequestResult(value: value, offset: offset);
     });
 
     // peripheral.characteristicWritten.listen((event) { 
