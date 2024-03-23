@@ -1,5 +1,7 @@
 import 'package:ble_peripheral/ble_peripheral.dart';
 
+String peripheralMessage = "";
+
 class PeripheralServer {
   // final peripheral = PeripheralManager.instance;
 
@@ -27,7 +29,8 @@ class PeripheralServer {
         (CharacteristicProperties.write.index),
       ], 
       permissions: [
-        AttributePermissions.readable.index,
+        // AttributePermissions.readable.index,
+		AttributePermissions.writeable.index,
       ]
     );
 
@@ -50,9 +53,10 @@ class PeripheralServer {
     // await peripheral.startAdvertising(advertisement);
 
     BlePeripheral.setWriteRequestCallback((deviceId, characteristicId, offset, value) {
-        if (characteristicId == characteristicUuid) {
+        // if (characteristicId == characteristicUuid) {
           print("Received Data from $deviceId: ${value.toString()}");
-        }
+		  peripheralMessage = value.toString();
+        // }
     });
 
     // peripheral.characteristicWritten.listen((event) { 

@@ -135,6 +135,8 @@ class _ScanScreenState extends State<ScanScreen> {
         .toList();
   }
 
+  bool connected = false;
+
   @override
   Widget build(BuildContext context) {
     return ScaffoldMessenger(
@@ -147,7 +149,26 @@ class _ScanScreenState extends State<ScanScreen> {
           onRefresh: onRefresh,
           child: ListView(
             children: <Widget>[
-              ElevatedButton(onPressed: () async { await PeripheralServer().startPeripheral(); }, child: Text("Start peripheralling")),
+              ElevatedButton(onPressed: () async { 
+				if (connected) {
+				  await PeripheralServer().stopPeripheral();
+				}
+
+				await PeripheralServer().startPeripheral(); 
+				connected = true;
+			  }, child: Text("Start peripheralling")),
+			  ElevatedButton(onPressed: () async { 
+				if (connected) {
+				  await PeripheralServer().stopPeripheral();
+				}
+				connected = false;
+			  }, child: Text("Stop peripheralling")),
+			  ElevatedButton(onPressed: () async { 
+				setState(() {
+				  
+				});
+			  }, child: Text("Reset Text")),
+			  Text("MEssage: $peripheralMessage"),
               ..._buildSystemDeviceTiles(context),
               ..._buildScanResultTiles(context),
             ],
