@@ -245,18 +245,18 @@ class _CharacteristicTileState extends State<CharacteristicTile> {
 
   Future onWritePressed() async {
     try {
-      var packetLength = longMessage.length ~/ c.device.mtuNow;
+      var packetLength = longMessage.length ~/ 20;
 
-      if ((longMessage.length % c.device.mtuNow) != 0) {
-        packetLength++;
-      }
+    //   if ((longMessage.length % 20) != 0) {
+    //     packetLength++;
+    //   }
 
       for (var i = 0; i < packetLength; i++) {
-        await c.write(utf8.encode(longMessage).sublist(i * c.device.mtuNow, (i+1) * c.device.mtuNow), withoutResponse: c.properties.writeWithoutResponse);
+        await c.write(utf8.encode(longMessage).sublist(i * 20, (i+1) * 20), withoutResponse: c.properties.writeWithoutResponse);
       }
 
-      if ((longMessage.length % c.device.mtuNow) != 0) {
-        await c.write(utf8.encode(longMessage).sublist(packetLength * c.device.mtuNow), withoutResponse: c.properties.writeWithoutResponse);
+      if ((longMessage.length % 20) != 0) {
+        await c.write(utf8.encode(longMessage).sublist(packetLength * 20), withoutResponse: c.properties.writeWithoutResponse);
       }
 
       // await c.write(_getRandomBytes(), withoutResponse: c.properties.writeWithoutResponse);
