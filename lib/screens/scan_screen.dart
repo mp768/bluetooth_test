@@ -33,11 +33,11 @@ class _ScanScreenState extends State<ScanScreen> {
 
       for (final result in results) {
         for (final uuid in result.advertisementData.serviceUuids) {
-          if (uuid.str128 == serviceUuid.toLowerCase()) {
-            _scanResults.add(result);
-            break;
-          }
+          // if (uuid.str128 == serviceUuid.toLowerCase()) {
+            // break;
+          // }
         }
+        _scanResults.add(result);
       }
 
       if (mounted) {

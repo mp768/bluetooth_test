@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:ble_peripheral/ble_peripheral.dart';
 
 String peripheralMessage = "";
@@ -20,6 +22,10 @@ class PeripheralServer {
     //   name: "This is a bluetooth server",
     //   serviceUUIDs: [ UUID.fromString(serviceUuid) ]
     // );
+
+    if (!await BlePeripheral.askBlePermission()) {
+      return;
+    }
 
     final characteristic = BleCharacteristic(
       uuid: characteristicUuid, 
@@ -54,7 +60,7 @@ class PeripheralServer {
     BlePeripheral.setWriteRequestCallback((deviceId, characteristicId, offset, value) {
         // if (characteristicId == characteristicUuid) {
           print("Received Data from $deviceId: ${value.toString()}");
-		      peripheralMessage = value.toString();
+		      peripheralMessage += utf8.decode(value ?? []);
         // }
 
         return WriteRequestResult(value: value, offset: offset);
