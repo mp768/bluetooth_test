@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:bluetooth_test/peripheral_manager.dart';
 import 'package:flutter/material.dart';
@@ -175,13 +176,13 @@ class _ScanScreenState extends State<ScanScreen> {
               }, child: Text("Stop peripheralling")),
               ElevatedButton(onPressed: () async { 
                 setState(() {
-                  peripheralMessage = "";
+                  peripheralMessage.clear();
                 });
               }, child: Text("Reset Text")),
               ElevatedButton(onPressed: () async { 
                 setState(() {});
               }, child: Text("Update Text")),
-              Text("MEssage: $peripheralMessage"),
+              Text("MEssage: ${utf8.decode(peripheralMessage)}"),
               ElevatedButton(onPressed: () async {
                 for (final device in FlutterBluePlus.connectedDevices) {
                   await device.disconnect();

@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:ble_peripheral/ble_peripheral.dart';
 
-String peripheralMessage = "";
+Uint8List peripheralMessage = Uint8List(0);
 const serviceUuid = "0000180F-0000-1000-8000-00805F9B34FB"; // Generate a unique UUID for your service
 const characteristicUuid = "00002A19-0000-1000-8000-00805F9B34FB"; // Generate a unique UUID for your characteristic
 
@@ -60,7 +61,7 @@ class PeripheralServer {
     BlePeripheral.setWriteRequestCallback((deviceId, characteristicId, offset, value) {
         // if (characteristicId == characteristicUuid) {
           print("Received Data from $deviceId: ${value.toString()}");
-		      peripheralMessage += utf8.decode(value ?? []);
+		      peripheralMessage.addAll((value ?? []));
         // }
 
         return WriteRequestResult(value: value, offset: offset);
